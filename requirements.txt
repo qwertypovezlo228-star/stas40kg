@@ -1,0 +1,12 @@
+python-telegram-bot
+Flask==2.3.3
+gunicorn==21.2.0
+nest-asyncio
+stripe==7.12.0
+httpx
+psycopg2-binary
+python-dotenv==1.0.0
+requests==2.31.0
+asyncpg
+aiohttp
+pytz
