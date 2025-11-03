@@ -1,8 +1,0 @@
-2025-08-11 16:16:41,434 - handlers.admin_handlers - INFO - Admin handlers module initialized
-2025-08-11 16:16:57,396 - handlers.admin_handlers - INFO - Admin handlers module initialized
-2025-11-03 01:46:14,521 - __main__ - INFO - Initializing Telegram application...
-2025-11-03 01:46:14,730 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7683275253:AAFQ-SDI1-nPM24y5zGtNd0kUxzjZMydWCk/getMe "HTTP/1.1 200 OK"
-2025-11-03 01:46:14,731 - __main__ - INFO - Starting Telegram application...
-2025-11-03 01:46:14,731 - telegram.ext.Application - INFO - Application started
-2025-11-03 01:46:14,732 - __main__ - INFO - Telegram application started successfully
-2025-11-03 01:46:14,732 - __main__ - INFO - Bot initialization completed successfully
