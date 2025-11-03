@@ -24,8 +24,6 @@ pip install -r requirements.txt
         1. Зайдите на сайт `https://dashboard.stripe.com`.
         2. Войдите в свой аккаунт.
         3. Найдите на странице `https://dashboard.stripe.com/test/dashboard` поле `API keys` и под ним `Secret key`.
-        4. Вставьте скопированный `Secret key` в поле `STRIPE_API_KEY` в файле `.env`
-    3. BOOSTY_TOKEN:
-        1. 
+        4. Вставьте скопированный `Secret key` в поле `STRIPE_API_KEY` в файле `.env` 
 3. Запустите сервер командой uvicorn main:app --host 0.0.0.0 --port 8080 --reload
 4. Запустите сервер ngrok командой ngrok http 8080
