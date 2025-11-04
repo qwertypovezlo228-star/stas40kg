@@ -25,6 +25,9 @@ logger = logging.getLogger(__name__)
 # Словарь для отслеживания состояний пользователей
 user_states = {}
 
+# Словарь для отслеживания ID сообщений с видео start.mp4 для каждого пользователя
+user_video_message_ids = {}
+
 # Константы состояний
 STATE_RUSSIA_PAYMENT_30 = "russia_payment_30"
 STATE_RUSSIA_PAYMENT_500 = "russia_payment_500"
@@ -662,6 +665,20 @@ Message.get_bot = patched_get_bot
 def generate_session_id():
     return str(uuid.uuid4())
 
+async def delete_start_video_if_exists(user_id, chat_id):
+    """Удаляет видео start.mp4 для пользователя, если оно существует"""
+    if user_id in user_video_message_ids:
+        video_message_id = user_video_message_ids[user_id]
+        try:
+            await bot.delete_message(chat_id=chat_id, message_id=video_message_id)
+            logger.info(f"Видео start.mp4 удалено для пользователя {user_id}")
+        except Exception as e:
+            # Видео могло быть уже удалено или не существует
+            logger.debug(f"Не удалось удалить видео start.mp4 для пользователя {user_id}: {e}")
+        finally:
+            # Удаляем из словаря в любом случае
+            del user_video_message_ids[user_id]
+
 async def send_file_to_user(user_id, plan_type):
     """Отправляем разный набор файлов и сообщение в зависимости от плана"""
     import time
@@ -865,12 +882,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     try:
+        # Удаляем старое видео, если оно существует
+        await delete_start_video_if_exists(user_id, update.message.chat_id)
+        
         # Отправляем видео БЕЗ caption
         with open("files_30/start.mp4", "rb") as video:
-            await update.message.reply_video(
+            video_message = await update.message.reply_video(
                 video=video,
                 supports_streaming=True
             )
+            # Сохраняем ID сообщения с видео
+            user_video_message_ids[user_id] = video_message.message_id
         
         # Задержка 300мс
         await asyncio.sleep(0.3)
@@ -921,6 +943,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         if query.data == "plan_500":
             from config import is_test_mode, is_using_one_dollar_prices
+            
+            # Удаляем видео start.mp4, если оно существует
+            await delete_start_video_if_exists(user.id, query.message.chat_id)
             
             await query.message.delete()
 
@@ -975,6 +1000,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif query.data == "plan_30":
             from config import is_test_mode, is_using_one_dollar_prices
             
+            # Удаляем видео start.mp4, если оно существует
+            await delete_start_video_if_exists(user.id, query.message.chat_id)
+            
             await query.message.delete()
 
             # Dynamic pricing text based on current mode
@@ -1015,6 +1043,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
                    
         elif query.data == "PAYMENT_RUSSIA_30":
+            # Удаляем видео start.mp4, если оно существует
+            await delete_start_video_if_exists(user.id, query.message.chat_id)
+            
             # Устанавливаем состояние пользователя
             user_states[user.id] = STATE_RUSSIA_PAYMENT_30
             
@@ -1037,6 +1068,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         
         elif query.data == "PAYMENT_RUSSIA_500":
+            # Удаляем видео start.mp4, если оно существует
+            await delete_start_video_if_exists(user.id, query.message.chat_id)
+            
             # Устанавливаем состояние пользователя
             user_states[user.id] = STATE_RUSSIA_PAYMENT_500
             
@@ -1059,6 +1093,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
         elif query.data == 'more_about_plan_30':
+            # Удаляем видео start.mp4, если оно существует
+            await delete_start_video_if_exists(user.id, query.message.chat_id)
             
             keyboard = [
                 [
@@ -1112,13 +1148,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
+            # Удаляем старое видео, если оно существует
+            await delete_start_video_if_exists(user_id, query.message.chat_id)
+
             # Отправляем видео БЕЗ caption
             with open("files_30/start.mp4", "rb") as video:
-                await bot.send_video(
+                video_message = await bot.send_video(
                     chat_id=query.message.chat_id,
                     video=video,
                     supports_streaming=True
                 )
+                # Сохраняем ID сообщения с видео
+                user_video_message_ids[user_id] = video_message.message_id
             
             # Задержка 300мс
             await asyncio.sleep(0.3)
@@ -1166,13 +1207,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             reply_markup = InlineKeyboardMarkup(keyboard)
 
+            # Удаляем старое видео, если оно существует
+            await delete_start_video_if_exists(user_id, query.message.chat_id)
+
             # Отправляем видео БЕЗ caption
             with open("files_30/start.mp4", "rb") as video:
-                await bot.send_video(
+                video_message = await bot.send_video(
                     chat_id=query.message.chat_id,
                     video=video,
                     supports_streaming=True
                 )
+                # Сохраняем ID сообщения с видео
+                user_video_message_ids[user_id] = video_message.message_id
             
             # Задержка 300мс
             await asyncio.sleep(0.3)
@@ -1309,13 +1355,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.delete()
 
             try:
+                # Удаляем старое видео, если оно существует
+                await delete_start_video_if_exists(user_id, query.message.chat_id)
+                
                 # Отправляем видео БЕЗ caption
                 with open("files_30/start.mp4", "rb") as video:
-                    await bot.send_video(
+                    video_message = await bot.send_video(
                         chat_id=query.message.chat_id,
                         video=video,
                         supports_streaming=True
                     )
+                    # Сохраняем ID сообщения с видео
+                    user_video_message_ids[user_id] = video_message.message_id
                 
                 # Задержка 300мс
                 await asyncio.sleep(0.3)
